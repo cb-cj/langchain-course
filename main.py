@@ -1,3 +1,6 @@
+from typing import List
+from pydantic import BaseModel, Field
+
 from dotenv import load_dotenv
 from langchain import tools
 from langchain_core.prompts import PromptTemplate
@@ -11,10 +14,18 @@ from langchain_tavily import TavilySearch
 # import os
 load_dotenv()
 
+class Source(BaseModel):
+    """Schemam for source used by agent to provide context for its responses."""
+    url: str = Field(description="URL of the source")
+
+class AgentResponse(BaseModel):
+    """Schema for agent response."""
+    answer: str = Field(description="The agents answer to the query")
+    sources: List[Source] = Field(default_factory=list, description="List of sources to generate the answers")
 
 myLLM = ChatOpenAI(temperature=0, model="gpt-5")
 myTools = [TavilySearch()]
-agent = create_agent(model=myLLM, tools=myTools)
+agent = create_agent(model=myLLM, tools=myTools, response_format=AgentResponse)
 
 
 def main():
